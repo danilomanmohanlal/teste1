@@ -1,0 +1,3 @@
+rootProject.name = 'Fin-Commons'
+include('fin-model')
+include('fin-batch-core')
