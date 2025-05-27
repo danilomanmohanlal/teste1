@@ -1,0 +1,59 @@
+<configuration>
+  <appender class="ch.qos.logback.core.ConsoleAppender" name="console">
+    <encoder>
+      <charset>utf8</charset>
+      <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+    </encoder>
+  </appender>
+  <appender class="ch.qos.logback.core.rolling.RollingFileAppender" name="fileInfo">
+    <encoder>
+      <charset>utf8</charset>
+      <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+    </encoder>
+    <file>${LOG_FILE}.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd_HH}.log</fileNamePattern>
+    </rollingPolicy>
+  </appender>
+  <appender class="ch.qos.logback.core.rolling.RollingFileAppender" name="fileError">
+    <encoder>
+      <charset>utf8</charset>
+      <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+    </encoder>
+    <file>${LOG_FILE_ERROR}.log</file>
+    <filter class="ch.qos.logback.classic.filter.LevelFilter">
+      <level>ERROR</level>
+      <onMatch>ACCEPT</onMatch>
+      <onMismatch>DENY</onMismatch>
+    </filter>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${LOG_FILE_ERROR}.%d{yyyy-MM-dd_HH}.log</fileNamePattern>
+    </rollingPolicy>
+  </appender>
+  <if condition='property("os.name").contains("Windows")'>
+    <else>
+      <property name="logPath" value="${LOG_PATH:-/var/opt/logs}"/>
+    </else>
+    <then>
+      <property name="logPath" value="${LOG_PATH:-C:/joblogs}"/>
+    </then>
+  </if>
+  <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+  <!-- You can override this to have a custom pattern -->
+  <property name="LOG_FILE" value="${logPath}/${springAppName}/application"/>
+  <!-- Appender to log to console -->
+  <property name="LOG_FILE_ERROR" value="${logPath}/${springAppName}/application-error"/>
+  <!-- Appender to log to file -->
+  <property name="CONSOLE_LOG_PATTERN"
+    value="LOG_%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+
+  <root level="INFO">
+    <appender-ref ref="console"/>
+    <appender-ref ref="fileError"/>
+    <appender-ref ref="fileInfo"/>
+  </root>
+
+  <springProperty name="springAppName" scope="context" source="spring.application.name"/>
+
+</configuration>
