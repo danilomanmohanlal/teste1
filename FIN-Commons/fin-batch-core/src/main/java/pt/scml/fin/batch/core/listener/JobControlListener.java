@@ -255,6 +255,11 @@ public class JobControlListener implements JobExecutionListener {
         String errorCode = "2";
         String errorMessage = "Module is already in execution";
 
+        //TODO: remove this asap - Danilo
+        if(!contextCache.getFileMap().isEmpty()) {
+            contextHeader.setFilename(contextCache.getFileMap().values().iterator().next());
+        }
+
         //TODO: review where to put this code
         List<Throwable> failureExceptions = jobExecution.getFailureExceptions();
         if (!failureExceptions.isEmpty()) {
