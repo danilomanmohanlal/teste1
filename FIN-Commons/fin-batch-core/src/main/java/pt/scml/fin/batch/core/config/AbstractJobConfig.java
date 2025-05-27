@@ -89,7 +89,7 @@ public abstract class AbstractJobConfig {
     /**
      * @return
      */
-    protected Optional<StepExecutionListener> addStepListener() {
+    protected Optional<List<StepExecutionListener>> addStepListener() {
         return Optional.empty();
     }
 
@@ -161,8 +161,9 @@ public abstract class AbstractJobConfig {
                 .listener(stepExceptionListener)
                 .listener(chunkAnalyzerListener);
 
-        Optional<StepExecutionListener> stepExecutionListener = addStepListener();
-        stepExecutionListener.ifPresent(chunkBuilder::listener);
+        Optional<List<StepExecutionListener>> stepExecutionListener = addStepListener();
+        List<StepExecutionListener> stepExecutionListeners = stepExecutionListener.get();
+        stepExecutionListeners.forEach(chunkBuilder::listener);
 
         return chunkBuilder.build();
     }
