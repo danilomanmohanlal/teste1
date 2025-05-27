@@ -241,5 +241,13 @@ public class ControlService {
     public List<Long> findByProcessId(Long processId) {
         return this.controlFileRepository.findByProcessIdControlProcessId(processId);
     }
+
+    public void markJobAsSuccessful(long writeCount) {
+        // Update control process and files as successful
+    }
+
+    public void markJobAsFailed() {
+        // Update control process and files as failed
+    }
 }
 

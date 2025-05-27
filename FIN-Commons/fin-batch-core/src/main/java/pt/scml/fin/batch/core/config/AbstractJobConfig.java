@@ -1,7 +1,5 @@
 package pt.scml.fin.batch.core.config;
 
-import static pt.scml.fin.batch.core.utils.FinUtils.createDirectoryIfNotExists;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +30,7 @@ import pt.scml.fin.batch.core.context.ContextCache;
 import pt.scml.fin.batch.core.context.ContextHeader;
 import pt.scml.fin.batch.core.listener.ChunkAnalyzerListener;
 import pt.scml.fin.batch.core.listener.JobControlListener;
+
 import pt.scml.fin.batch.core.listener.StepExceptionListener;
 import pt.scml.fin.batch.core.listener.TaskAnalyzerListener;
 import pt.scml.fin.batch.core.service.FinUtilsService;
@@ -47,20 +46,28 @@ public abstract class AbstractJobConfig {
     private final String jobName;
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
+
     @Autowired
     private StepExceptionListener stepExceptionListener;
+
     @Autowired
     private ChunkAnalyzerListener chunkAnalyzerListener;
+
     @Autowired
     private TaskAnalyzerListener taskAnalyzerListener;
+
     @Autowired
     private JobControlListener jobControlListener;
+
     @Autowired
     private ContextHeader contextHeader;
+
     @Autowired
     private ContextCache contextCache;
+
     @Autowired
     private FinUtilsService finUtilsService;
+
     private Job job;
 
     protected AbstractJobConfig(String jobName, JobRepository jobRepository,
@@ -89,7 +96,7 @@ public abstract class AbstractJobConfig {
     /**
      * @return
      */
-    protected Optional<StepExecutionListener> addStepListener() {
+    protected Optional<List<StepExecutionListener>> addStepListener() {
         return Optional.empty();
     }
 
@@ -161,8 +168,9 @@ public abstract class AbstractJobConfig {
                 .listener(stepExceptionListener)
                 .listener(chunkAnalyzerListener);
 
-        Optional<StepExecutionListener> stepExecutionListener = addStepListener();
-        stepExecutionListener.ifPresent(chunkBuilder::listener);
+        Optional<List<StepExecutionListener>> stepExecutionListener = addStepListener();
+        List<StepExecutionListener> stepExecutionListeners = stepExecutionListener.get();
+        stepExecutionListeners.forEach(chunkBuilder::listener);
 
         return chunkBuilder.build();
     }
