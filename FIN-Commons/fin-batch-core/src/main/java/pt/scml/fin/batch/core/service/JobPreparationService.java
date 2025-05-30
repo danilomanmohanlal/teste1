@@ -1,64 +1,67 @@
 package pt.scml.fin.batch.core.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.stereotype.Service;
+import pt.scml.fin.batch.core.context.ContextCache;
 import pt.scml.fin.batch.core.context.ContextHeader;
 import pt.scml.fin.batch.core.utils.DateUtils;
+import pt.scml.fin.model.dto.ControlProcessDTO;
+import pt.scml.fin.model.dto.enums.CtrlFileStatusEnum;
 import pt.scml.fin.model.dto.enums.CtrlProcessStatusEnum;
 
 @Service
 @Slf4j
 public class JobPreparationService {
 
-
-    private final ModuleValidationService moduleValidationService;
-    private final FinancialCycleService financialCycleService;
-    private final ControlService controlService;
     private final ContextHeader contextHeader;
-    private static final String CONFIG_KEY_CURRENT_PERIOD = "CURR_PERIOD_INV";
+
+    private final ContextCache contextCache;
+
+    private final ControlService controlService;
+
     private final FinUtilsService finUtilsService;
 
-    Long finModuleId = 0l;
-    Long currFinPeriodId = 0l;
+    private final ModuleValidationService moduleValidationService;
 
+    private static final String CONFIG_KEY_CURRENT_PERIOD = "CURR_PERIOD_INV";
 
-    public JobPreparationService(
-            ModuleValidationService moduleValidationService,
-            FinancialCycleService financialCycleService,
-            ControlService controlService, ContextHeader contextHeader,
-            FinUtilsService finUtilsService) {
-        this.moduleValidationService = moduleValidationService;
-        this.financialCycleService = financialCycleService;
-        this.controlService = controlService;
+    private Long currFinPeriodId;
+    private Long finModuleId;
+
+    public JobPreparationService(ContextHeader contextHeader, ContextCache contextCache,
+            ControlService controlService, FinUtilsService finUtilsService,
+            ModuleValidationService moduleValidationService) {
         this.contextHeader = contextHeader;
+        this.contextCache = contextCache;
+        this.controlService = controlService;
         this.finUtilsService = finUtilsService;
+        this.moduleValidationService = moduleValidationService;
     }
 
     public void prepareJob(JobExecution jobExecution) {
-        // 1. Validate parameters
+
         //jobParameterValidator.validateJobParameters();
-        
-        // 2. Setup job context
+
         setupJobContext(jobExecution);
-        
-        // 3. Validate module not already running
-        moduleValidationService.validateModuleNotInExecution(contextHeader.getModuleId());
-        
-        // 4. Prepare financial cycles
-        financialCycleService.ensureFinancialCyclesExist(contextHeader.getProcDate());
-        
-        // 5. Create control records
+
+        moduleValidationService.validateModuleNotInExecution(contextHeader.getModuleId(), contextHeader.getFilename());
+
         log.info("Creating control process record");
-        this.controlService.createControlProcess(finModuleId, currFinPeriodId,
+        ControlProcessDTO controlProcess = this.controlService.createControlProcess(finModuleId,
+                currFinPeriodId,
                 CtrlProcessStatusEnum.EXECUTING, "", contextHeader.getModuleShdes(),
                 jobExecution.getJobInstance().getId(),
                 "", "");
+
+        contextHeader.setControlProcessId(controlProcess.controlProcessId());
+
+        createControlFile();
     }
 
     private void setupJobContext(JobExecution jobExecution) {
-        // Clean, focused method for context setup
 
         Long moduleId = this.finUtilsService.getFinModuleId(contextHeader.getModuleShdes());
         String currFinPeriodIdStr = this.finUtilsService.getConfigValue(CONFIG_KEY_CURRENT_PERIOD);
@@ -71,7 +74,6 @@ public class JobPreparationService {
 
         contextHeader.setJobExecutionId(jobExecution.getJobInstance().getId());
         contextHeader.setUserId(generateUserId(jobExecution));
-        // ... other context setup
     }
 
     /**
@@ -88,4 +90,17 @@ public class JobPreparationService {
 
         return sb;
     }
+
+    private void createControlFile() {
+        log.info("Creating control file record");
+
+        this.controlService.createControlFile(
+                contextHeader.getControlProcessId(),
+                LocalDateTime.now(),
+                DateUtils.getLocalDateTimeFromString(contextHeader.getProcDate(),
+                        DateUtils.YYYYMMDD),
+                contextHeader.getFilename(), 0L, CtrlFileStatusEnum.EXECUTION.getCode(),
+                LocalDateTime.now(), LocalDateTime.now(), contextHeader.getUserId());
+    }
+
 }

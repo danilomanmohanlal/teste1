@@ -30,8 +30,10 @@ import pt.scml.fin.batch.core.context.ContextCache;
 import pt.scml.fin.batch.core.context.ContextHeader;
 import pt.scml.fin.batch.core.listener.ChunkAnalyzerListener;
 import pt.scml.fin.batch.core.listener.JobControlListener;
-
+//import pt.scml.fin.batch.core.listener.JobFileValidationListener;
+import pt.scml.fin.batch.core.listener.JobFinancialCycleListener;
 import pt.scml.fin.batch.core.listener.StepExceptionListener;
+import pt.scml.fin.batch.core.listener.StepMoveFileListener;
 import pt.scml.fin.batch.core.listener.TaskAnalyzerListener;
 import pt.scml.fin.batch.core.service.FinUtilsService;
 
@@ -58,6 +60,15 @@ public abstract class AbstractJobConfig {
 
     @Autowired
     private JobControlListener jobControlListener;
+
+//    @Autowired
+//    private JobFileValidationListener jobFileValidationListener;
+
+    @Autowired
+    private StepMoveFileListener stepMoveFileListener;
+
+    @Autowired
+    private JobFinancialCycleListener jobFinancialCycleListener;
 
     @Autowired
     private ContextHeader contextHeader;
@@ -96,7 +107,7 @@ public abstract class AbstractJobConfig {
     /**
      * @return
      */
-    protected Optional<List<StepExecutionListener>> addStepListener() {
+    protected Optional<StepExecutionListener> addStepListener() {
         return Optional.empty();
     }
 
@@ -124,6 +135,13 @@ public abstract class AbstractJobConfig {
 
         //add job life cycle listener
         jobBuilder.listener(jobControlListener);
+
+        //add file listener
+//        if (contextHeader.isJobWithFiles())
+//            jobBuilder.listener(jobFileValidationListener);
+
+        //financial cycle listener
+        jobBuilder.listener(jobFinancialCycleListener);
 
         //add task execution listener ( for SCDF execution )
         jobBuilder.listener(taskAnalyzerListener);
@@ -168,11 +186,29 @@ public abstract class AbstractJobConfig {
                 .listener(stepExceptionListener)
                 .listener(chunkAnalyzerListener);
 
-        Optional<List<StepExecutionListener>> stepExecutionListener = addStepListener();
-        List<StepExecutionListener> stepExecutionListeners = stepExecutionListener.get();
-        stepExecutionListeners.forEach(chunkBuilder::listener);
+        Optional<StepExecutionListener> stepExecutionListener = addStepListener();
+        if (stepExecutionListener.isPresent()) {
+            chunkBuilder.listener(stepExecutionListener.get());
+        }
 
         return chunkBuilder.build();
+    }
+
+    public <I, O> Step createChunkStepWithListener(String stepName, int chunkSize,
+            ItemReader<I> reader,
+            ItemProcessor<I, O> processor,
+            ItemWriter<O> writer,
+            StepExecutionListener listener) {
+        return new StepBuilder(stepName, jobRepository)
+                .<I, O>chunk(chunkSize, transactionManager)
+                .reader(reader)
+                .processor(processor)
+                .writer(writer)
+                .listener(listener)
+                .listener(stepExceptionListener)
+                .listener(chunkAnalyzerListener)
+                .build();
+
     }
 
     /**
@@ -223,7 +259,7 @@ public abstract class AbstractJobConfig {
         return executor;
     }
 
-    //TODO: think of a better place to put this code
+
 
 
 }

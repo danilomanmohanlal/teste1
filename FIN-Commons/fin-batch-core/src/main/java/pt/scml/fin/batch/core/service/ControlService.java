@@ -28,7 +28,7 @@ public class ControlService {
     private final ControlFileRepository controlFileRepository;
 
     public ControlService(ControlProcessRepository controlProcessRepository,
-            ControlFileRepository controlFileRepository) {
+        ControlFileRepository controlFileRepository) {
         this.controlProcessRepository = controlProcessRepository;
         this.controlFileRepository = controlFileRepository;
     }
@@ -43,24 +43,24 @@ public class ControlService {
      * @return the created {@link ControlProcessDTO} with persisted data
      */
     public ControlProcessDTO createControlProcess(Long moduleId, Long finPeriodId,
-            CtrlProcessStatusEnum processStatusEnum, String jobParams, String moduleShdes,
-            Long jobInstanceId, String errorCode, String errorMessage) {
+        CtrlProcessStatusEnum processStatusEnum, String jobParams, String moduleShdes,
+        Long jobInstanceId, String errorCode, String errorMessage) {
         log.info("Creating control process - moduleId: {}, finPeriodId: {}, moduleShdes: {}",
-                moduleId, finPeriodId, moduleShdes);
+            moduleId, finPeriodId, moduleShdes);
 
         ControlProcessDTO controlProcessDTO = ControlProcessDTO.builder()
-                .moduleId(moduleId)
-                .finPeriodId(finPeriodId)
-                .processStatus(processStatusEnum.getCode())
-                .pid(String.valueOf(ProcessHandle.current().pid()))
-                .userId("FIN_APP")
-                .calledParams(jobParams)
-                .data1(moduleShdes)
-                .startDate(LocalDateTime.now())
-                .jobInstanceId(jobInstanceId)
-                .errorCode(errorCode)
-                .errorMessage(errorMessage)
-                .build();
+            .moduleId(moduleId)
+            .finPeriodId(finPeriodId)
+            .processStatus(processStatusEnum.getCode())
+            .pid(String.valueOf(ProcessHandle.current().pid()))
+            .userId("FIN_APP")
+            .calledParams(jobParams)
+            .data1(moduleShdes)
+            .startDate(LocalDateTime.now())
+            .jobInstanceId(jobInstanceId)
+            .errorCode(errorCode)
+            .errorMessage(errorMessage)
+            .build();
 
         ControlProcess controlProcess = controlProcessRepository.save(controlProcessDTO.toEntity());
         ControlProcessDTO result = controlProcess.toDTO();
@@ -80,26 +80,26 @@ public class ControlService {
      * @return the created {@link ControlProcessDTO} with persisted data
      */
     public ControlProcessDTO createControlProcessError(Long moduleId, Long finPeriodId,
-            String jobParams, String moduleShdes,
-            Long jobInstanceId, String errorCode, String errorMessage) {
+        String jobParams, String moduleShdes,
+        Long jobInstanceId, String errorCode, String errorMessage) {
         log.info("Creating control process - moduleId: {}, finPeriodId: {}, moduleShdes: {}",
-                moduleId, finPeriodId, moduleShdes);
+            moduleId, finPeriodId, moduleShdes);
 
         ControlProcessDTO controlProcessDTO = ControlProcessDTO.builder()
-                .moduleId(moduleId)
-                .finPeriodId(finPeriodId)
-                .processStatus(CtrlProcessStatusEnum.ERROR.getCode())
-                .functionalStatus(CtrlProcessFunctionalStatusEnum.ERROR.getCode())
-                .pid(String.valueOf(ProcessHandle.current().pid()))
-                .userId("FIN_APP")
-                .calledParams(jobParams)
-                .data1(moduleShdes)
-                .startDate(LocalDateTime.now())
-                .endDate(LocalDateTime.now())
-                .jobInstanceId(jobInstanceId)
-                .errorCode(errorCode)
-                .errorMessage(errorMessage)
-                .build();
+            .moduleId(moduleId)
+            .finPeriodId(finPeriodId)
+            .processStatus(CtrlProcessStatusEnum.ERROR.getCode())
+            .functionalStatus(CtrlProcessFunctionalStatusEnum.ERROR.getCode())
+            .pid(String.valueOf(ProcessHandle.current().pid()))
+            .userId("FIN_APP")
+            .calledParams(jobParams)
+            .data1(moduleShdes)
+            .startDate(LocalDateTime.now())
+            .endDate(LocalDateTime.now())
+            .jobInstanceId(jobInstanceId)
+            .errorCode(errorCode)
+            .errorMessage(errorMessage)
+            .build();
 
         ControlProcess controlProcess = controlProcessRepository.save(controlProcessDTO.toEntity());
         ControlProcessDTO result = controlProcess.toDTO();
@@ -117,10 +117,9 @@ public class ControlService {
      * @param functionalStatus the new functional status of the process
      */
     public void updateControlProcess(Long controlProcessId, CtrlProcessStatusEnum processStatus,
-            CtrlProcessFunctionalStatusEnum functionalStatus, String errorCode,
-            String errorMessage) {
+        CtrlProcessFunctionalStatusEnum functionalStatus, String errorCode, String errorMessage) {
         log.info("Updating control process - ID: {}, status: {}, functionalStatus: {}",
-                controlProcessId, processStatus, functionalStatus);
+            controlProcessId, processStatus, functionalStatus);
 
         ControlProcess controlProcess = controlProcessRepository.findById(controlProcessId).get();
         controlProcess.setProcessStatus(processStatus.getCode());
@@ -142,9 +141,9 @@ public class ControlService {
      * @param numRecords    the new functional status of the process
      */
     public void updateControlFile(Long controlFileId, CtrlFileStatusEnum status,
-            Long numRecords) {
+        Long numRecords) {
         log.info("Updating control file - ID: {}, status: {}, numRecords: {}",
-                controlFileId, status, numRecords);
+            controlFileId, status, numRecords);
 
         Optional<ControlFile> ctrlFileOptional = controlFileRepository.findById(controlFileId);
         if (ctrlFileOptional.isPresent()) {
@@ -172,27 +171,27 @@ public class ControlService {
      * @param lastUserId      ID of the last user who modified or handled the file
      */
     public ControlFileDTO createControlFile(Long ctrlProcessId, LocalDateTime creationDate,
-            LocalDateTime processedDate,
-            String filename, Long numRecordsTotal, String status, LocalDateTime dataStartDate,
-            LocalDateTime dataEndDate,
-            String lastUserId) {
+        LocalDateTime processedDate,
+        String filename, Long numRecordsTotal, String status, LocalDateTime dataStartDate,
+        LocalDateTime dataEndDate,
+        String lastUserId) {
 
         log.info("Creating control file - processId: {}, filename: {}, status: {}", ctrlProcessId,
-                filename, status);
+            filename, status);
 
         ControlProcess controlProcess = controlProcessRepository.findById(ctrlProcessId).get();
 
         ControlFileDTO controlFileDTO = ControlFileDTO.builder()
-                .processId(controlProcess.toDTO())
-                .creationDate(creationDate)
-                .processedDate(processedDate)
-                .filename(filename)
-                .numRecTotal(numRecordsTotal)
-                .status(status)
-                .dataStartDate(dataStartDate)
-                .dataEndDate(dataEndDate)
-                .lastUserId(lastUserId)
-                .build();
+            .processId(controlProcess.toDTO())
+            .creationDate(creationDate)
+            .processedDate(processedDate)
+            .filename(filename)
+            .numRecTotal(numRecordsTotal)
+            .status(status)
+            .dataStartDate(dataStartDate)
+            .dataEndDate(dataEndDate)
+            .lastUserId(lastUserId)
+            .build();
 
         ControlFile savedEntity = controlFileRepository.save(controlFileDTO.toEntity());
 
@@ -206,8 +205,8 @@ public class ControlService {
         log.info("Counting processed modules - moduleId: {}, procDate: {}", moduleId, procDate);
 
         int count = controlProcessRepository.countProcessedModule(moduleId,
-                CtrlProcessStatusEnum.SUCCESS.getCode(),
-                CtrlProcessFunctionalStatusEnum.SUCCESS.getCode(), procDate);
+            CtrlProcessStatusEnum.SUCCESS.getCode(),
+            CtrlProcessFunctionalStatusEnum.SUCCESS.getCode(), procDate);
 
         log.info("Processed module count result: {} for moduleId: {}", count, moduleId);
 
@@ -217,7 +216,7 @@ public class ControlService {
     public void checkCtrlProcessAlreadyInExecution(Long moduleId) {
         log.info("Checking if there is already processing in execution");
         ControlProcess processInExecution = this.controlProcessRepository.findProcessInExecutionByModuleId(
-                CtrlProcessStatusEnum.EXECUTING.getCode(), moduleId);
+            CtrlProcessStatusEnum.EXECUTING.getCode(), moduleId);
         if (processInExecution != null) {
             throw new JobWithModuleIdInExecutionException("This module is already executing");
         }
@@ -226,10 +225,10 @@ public class ControlService {
     public void checkCtrlFileAlreadyExecuted(String filename, Long moduleId) {
         log.info("Checking if there is already executed");
         int processInExecution = this.controlFileRepository.countByFileNameAndControlProcessId(
-                filename, moduleId);
+            filename, moduleId);
         if (processInExecution != 0) {
             String errorMsg = String.format("This module with this %s is already executed",
-                    filename);
+                filename);
             throw new JobWithModuleIdInExecutionException(errorMsg);
         }
     }
@@ -240,14 +239,6 @@ public class ControlService {
 
     public List<Long> findByProcessId(Long processId) {
         return this.controlFileRepository.findByProcessIdControlProcessId(processId);
-    }
-
-    public void markJobAsSuccessful(long writeCount) {
-        // Update control process and files as successful
-    }
-
-    public void markJobAsFailed() {
-        // Update control process and files as failed
     }
 }
 

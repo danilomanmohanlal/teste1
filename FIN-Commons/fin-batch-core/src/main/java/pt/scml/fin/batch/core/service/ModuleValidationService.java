@@ -13,16 +13,20 @@ import pt.scml.fin.model.repo.ControlProcessRepository;
 public class ModuleValidationService {
     
     private final ControlService controlService;
-    private ControlProcessRepository controlProcessRepository;
+    private final ControlProcessRepository controlProcessRepository;
 
-    public ModuleValidationService(ControlService controlService) {
+    public ModuleValidationService(ControlService controlService,
+            ControlProcessRepository controlProcessRepository) {
         this.controlService = controlService;
+        this.controlProcessRepository = controlProcessRepository;
     }
 
-    public void validateModuleNotInExecution(Long moduleId) {
+    public void validateModuleNotInExecution(Long moduleId, String filename) {
         if (isModuleAlreadyExecuting(moduleId)) {
             throw new JobWithModuleIdInExecutionException("Module already executing: " + moduleId);
         }
+
+        isModuleFilenameAlreadyExecuting(moduleId, filename);
     }
 
     private boolean isModuleAlreadyExecuting(Long moduleId) {
@@ -36,9 +40,9 @@ public class ModuleValidationService {
         return false;
     }
 
-    public void validateModuleNotAlreadyProcessed(Long moduleId, String procDate) {
-        //if (isModuleAlreadyProcessed(moduleId, procDate)) {
-          //  throw new JobAlreadyCompletedException("Module already processed for date: " + procDate);
-        //}
+    private void isModuleFilenameAlreadyExecuting(Long moduleId, String filename) {
+        controlService.checkCtrlFileAlreadyExecuted(filename, moduleId);
     }
+
+
 }

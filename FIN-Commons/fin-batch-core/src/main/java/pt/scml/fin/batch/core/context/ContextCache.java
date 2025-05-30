@@ -1,8 +1,6 @@
 package pt.scml.fin.batch.core.context;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
@@ -15,11 +13,7 @@ public class ContextCache implements Serializable {
     private Long channelId;
     private String gameId;
 
-    /**
-     * Key - filetype
-     * value - filename
-     */
-    private Map<String, String> fileMap = new HashMap<>();
+    /* System Directory's */
     private String inputDirectory;
     private String workDirectory;
     private String errorDirectory;

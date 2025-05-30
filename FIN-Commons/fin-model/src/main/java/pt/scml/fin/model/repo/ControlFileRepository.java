@@ -30,4 +30,5 @@ public interface ControlFileRepository extends JpaRepository<ControlFile, Long> 
                     + " WHERE "
                     + "f.FIN_PROCESS_ID=:processId", nativeQuery = true)
     List<Long> findByProcessIdControlProcessId(@Param("processId")Long processId);
+
 }

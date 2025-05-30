@@ -26,4 +26,11 @@ public class ContextHeader implements Serializable {
 
     private boolean isJobParamsValid = true;
     private String paramsExceptionMessage;
+    private String jobFolder;
+    private String filePattern;
+
+    //ERROR or Exception
+    private boolean hasFileError;
+    private String fileErrorMessage;
+
 }

@@ -35,6 +35,8 @@ public abstract class FileUtils {
     private static final String CONFIG_WORK = "WORK";
     private static final String CONFIG_DUPLICATED = "DUPLICATED";
 
+    private String errorMessage = "";
+
     public FileUtils(ContextHeader contextHeader,
         ContextCache contextCache, FinUtilsService finUtilsService) {
         this.contextHeader = contextHeader;
@@ -45,7 +47,7 @@ public abstract class FileUtils {
     public String hasFilesToProcess() throws IOException {
         File matchedFile = getMatchedFile();
         validateFileContents(matchedFile);
-        return matchedFile.getName();
+        return matchedFile != null ? matchedFile.getName() : "INVALID FILE";
     }
 
     public File getMatchedFile() throws FileNotFoundException {
@@ -54,8 +56,11 @@ public abstract class FileUtils {
                 getFilePattern().replace(DateUtils.YYYYMMDD_CAPS_LOCK, contextHeader.getProcDate()));
         String[] matchingFiles = file.list(filter);
         if (matchingFiles == null || matchingFiles.length == 0) {
-            throw new FileNotFoundException(
-                "No matching files found for: " + contextHeader.getProcDate());
+            contextHeader.setHasFileError(true);
+            errorMessage = "No file matching pattern " + getFilePattern()+ " found in: " + contextCache.getInputDirectory();
+            contextHeader.setFileErrorMessage(errorMessage);
+            log.error(errorMessage);
+            return null;
         }
         contextHeader.setFilename(matchingFiles[0]);
 
@@ -65,12 +70,14 @@ public abstract class FileUtils {
     }
 
     public void validateFileContents(File file) throws IOException {
-        List<String> lines = Files.readAllLines(file.toPath());
-        if (lines.size() < 2) {
-            throw new IllegalStateException("The file only has a header and trailer.");
+        if (!contextHeader.isHasFileError()) {
+            List<String> lines = Files.readAllLines(file.toPath());
+            if (lines.size() < 2) {
+                throw new IllegalStateException("The file only has a header and trailer.");
+            }
+            validateHeaderDate(lines.getFirst());
+            validateTrailerCount(lines.getLast(), lines.size());
         }
-        validateHeaderDate(lines.getFirst());
-        validateTrailerCount(lines.getLast(), lines.size());
     }
 
     public void validateHeaderDate(String header) {
